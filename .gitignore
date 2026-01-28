@@ -1,6 +1,15 @@
+# mac
+.DS_Store
+
+# python
 __pycache__/
 *.pyc
 .env
+.env.local
 venv/
 db.sqlite3
-.env.local
+
+# node
+node_modules/
+dist/
+
