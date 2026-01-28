@@ -1,8 +1,3 @@
-Perfect choice 👍
-Here’s a **clean, classy, recruiter-ready README** for your project.
-You can **copy-paste this directly** into `README.md` at the repo root.
-
----
 
 # Job Tracker – Full-Stack Application
 
@@ -72,43 +67,6 @@ Job-tracker-fullstack/
 5. Only verified users can sign in
 
 This mirrors **real production authentication flows**.
-
----
-
-## 🚀 Getting Started (Backend)
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/harshini090/Job-tracker-Fullstack.git
-cd Job-tracker-Fullstack/Backend
-```
-
-### 2. Create virtual environment
-
-```bash
-python -m venv venv
-source venv/bin/activate
-```
-
-### 3. Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Run migrations
-
-```bash
-python manage.py makemigrations
-python manage.py migrate
-```
-
-### 5. Start the server
-
-```bash
-python manage.py runserver
-```
 
 ---
 
