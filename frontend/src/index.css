@@ -1,14 +1,11 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-  body {
-    @apply bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen text-white font-sans antialiased;
-  }
+@theme {
+  --color-glass: rgba(255, 255, 255, 0.25);
+  --color-glassBorder: rgba(255, 255, 255, 0.5);
 }
 
-@layer components {
+@layer utilities {
   .glass-panel {
     @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl rounded-xl;
   }
@@ -20,4 +17,8 @@
   .glass-button {
     @apply bg-white/20 hover:bg-white/30 active:bg-white/40 border border-white/20 rounded-lg px-6 py-2 font-medium transition-all backdrop-blur-sm;
   }
+}
+
+body {
+  @apply bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen text-white font-sans antialiased;
 }
