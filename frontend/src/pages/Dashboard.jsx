@@ -1,265 +1,117 @@
-import { useEffect, useState, useMemo } from 'react';
-import { Plus, Search, Filter, PartyPopper } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import confetti from 'canvas-confetti';
-import { fetchApplications, createApplication, updateApplication, deleteApplication } from '../api';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Plus } from 'lucide-react';
+import api from '../api/axios';
 import JobCard from '../components/JobCard';
-import JobModal from '../components/JobModal';
-import DeleteModal from '../components/DeleteModal'; // New Import
+import AddJobModal from '../components/AddJobModal';
 
-const STATUSES = ["APPLIED", "SCREENING", "INTERVIEW", "OFFER", "REJECTED"];
-
-export default function Dashboard() {
-    const [jobs, setJobs] = useState([]);
+const Dashboard = () => {
+    const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [query, setQuery] = useState('');
-    const [filter, setFilter] = useState('ALL');
-
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingJob, setEditingJob] = useState(null);
-
-    // New State for Delete Modal
-    const [deleteId, setDeleteId] = useState(null);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [deleteLoading, setDeleteLoading] = useState(false);
 
     useEffect(() => {
-        loadJobs();
+        fetchApplications();
     }, []);
 
-    const loadJobs = async () => {
-        setLoading(true);
+    const fetchApplications = async () => {
         try {
-            const data = await fetchApplications();
-            setJobs(data);
-        } catch (err) {
-            setError('Failed to load applications.');
-            console.error(err);
+            const response = await api.get('/applications/');
+            setApplications(response.data);
+        } catch (error) {
+            console.error("Failed to fetch applications", error);
         } finally {
             setLoading(false);
         }
     };
 
-    const fireConfetti = () => {
-        const duration = 3 * 1000;
-        const animationEnd = Date.now() + duration;
-        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
-        const randomInRange = (min, max) => Math.random() * (max - min) + min;
-
-        const interval = setInterval(function () {
-            const timeLeft = animationEnd - Date.now();
-
-            if (timeLeft <= 0) {
-                return clearInterval(interval);
-            }
-
-            const particleCount = 50 * (timeLeft / duration);
-            confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
-            confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
-        }, 250);
+    const handleJobAdded = () => {
+        fetchApplications();
     };
 
-    const handleCreate = async (data) => {
-        await createApplication(data);
-        await loadJobs();
+    const stats = {
+        total: applications.length,
+        interview: applications.filter(a => a.status === 'INTERVIEW').length,
+        offer: applications.filter(a => a.status === 'OFFER').length,
     };
-
-    const handleUpdate = async (data) => {
-        if (!editingJob) return;
-        await updateApplication(editingJob.id, data);
-
-        // Check for status upgrades
-        if (data.status === 'OFFER' && editingJob.status !== 'OFFER') {
-            fireConfetti();
-        }
-
-        await loadJobs();
-        setEditingJob(null);
-    };
-
-    // Quick action from Card
-    const handleQuickStatusChange = async (job, newStatus) => {
-        if (job.status === newStatus) return;
-
-        // Optimistic Update
-        const updatedJobs = jobs.map(j => j.id === job.id ? { ...j, status: newStatus } : j);
-        setJobs(updatedJobs);
-
-        try {
-            await updateApplication(job.id, { ...job, status: newStatus });
-            if (newStatus === 'OFFER') fireConfetti();
-        } catch (err) {
-            console.error("Failed to update status", err);
-            // Revert on error
-            loadJobs();
-        }
-    };
-
-    const confirmDelete = (id) => {
-        setDeleteId(id);
-        setIsDeleteModalOpen(true);
-    };
-
-    const handleDelete = async () => {
-        if (!deleteId) return;
-        setDeleteLoading(true);
-        try {
-            await deleteApplication(deleteId);
-            setJobs(jobs.filter(j => j.id !== deleteId));
-            setIsDeleteModalOpen(false);
-            setDeleteId(null);
-        } catch (err) {
-            alert('Failed to delete job');
-        } finally {
-            setDeleteLoading(false);
-        }
-    };
-
-    const openCreateModal = () => {
-        setEditingJob(null);
-        setIsModalOpen(true);
-    };
-
-    const openEditModal = (job) => {
-        setEditingJob(job);
-        setIsModalOpen(true);
-    };
-
-    // Stats
-    const stats = useMemo(() => {
-        const counts = { TOTAL: jobs.length };
-        STATUSES.forEach(s => counts[s] = 0);
-        jobs.forEach(j => {
-            if (counts[j.status] !== undefined) counts[j.status]++;
-        });
-        return counts;
-    }, [jobs]);
-
-    // Filters
-    const filteredJobs = useMemo(() => {
-        return jobs.filter(job => {
-            const matchesQuery = !query ||
-                job.company_name.toLowerCase().includes(query.toLowerCase()) ||
-                job.role_title.toLowerCase().includes(query.toLowerCase());
-            const matchesFilter = filter === 'ALL' || job.status === filter;
-            return matchesQuery && matchesFilter;
-        });
-    }, [jobs, query, filter]);
-
-    if (loading && jobs.length === 0) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-            </div>
-        );
-    }
 
     return (
-        <div className="space-y-8">
-            {/* Header & Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                <div className="col-span-2 md:col-span-1 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                    <div className="text-sm text-slate-500 font-medium">Total</div>
-                    <div className="text-2xl font-bold text-slate-900">{stats.TOTAL}</div>
+        <div className="space-y-6">
+            <div className="flex justify-between items-center mb-8">
+                <div>
+                    <h2 className="text-3xl font-bold">Dashboard</h2>
+                    <p className="text-white/60">Overview of your job search</p>
                 </div>
-                {STATUSES.map(s => (
-                    <div key={s} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hidden md:block relative overflow-hidden group">
-                        {s === 'OFFER' && <div className="absolute top-0 right-0 w-16 h-16 bg-green-100 rounded-bl-full -mr-8 -mt-8 opacity-50 group-hover:opacity-100 transition-opacity" />}
-                        <div className="text-xs text-slate-500 font-medium capitalize relative z-10">{s.toLowerCase()}</div>
-                        <div className="text-xl font-bold text-slate-900 relative z-10">{stats[s]}</div>
-                    </div>
-                ))}
-            </div>
-
-            {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <div className="flex w-full sm:w-auto gap-4 flex-1">
-                    <div className="relative flex-1 sm:max-w-xs">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <input
-                            type="text"
-                            placeholder="Search applications..."
-                            className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            value={query}
-                            onChange={e => setQuery(e.target.value)}
-                        />
-                    </div>
-                    <div className="relative">
-                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <select
-                            className="pl-9 pr-8 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white appearance-none"
-                            value={filter}
-                            onChange={e => setFilter(e.target.value)}
-                        >
-                            <option value="ALL">All Statuses</option>
-                            {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                    </div>
-                </div>
-
                 <button
-                    onClick={openCreateModal}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm hover:shadow-indigo-500/30"
+                    onClick={() => setIsModalOpen(true)}
+                    className="glass-button flex items-center space-x-2 bg-white/10 hover:bg-white/20"
                 >
-                    <Plus className="w-4 h-4" />
-                    New Application
+                    <Plus size={20} />
+                    <span>Add Application</span>
                 </button>
             </div>
 
-            {/* Content */}
-            <AnimatePresence>
-                {filteredJobs.length > 0 ? (
-                    <motion.div
-                        layout
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                    >
-                        {filteredJobs.map(job => (
-                            <JobCard
-                                key={job.id}
-                                job={job}
-                                onEdit={openEditModal}
-                                onDelete={confirmDelete}
-                                onStatusChange={handleQuickStatusChange}
-                            />
-                        ))}
-                    </motion.div>
-                ) : (
-                    <div className="text-center py-20 bg-white rounded-xl border border-dashed border-slate-300">
-                        <div className="mx-auto w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                            <Search className="w-6 h-6 text-slate-400" />
-                        </div>
-                        <h3 className="text-lg font-medium text-slate-900">No applications found</h3>
-                        <p className="text-slate-500 mt-1">
-                            {query || filter !== 'ALL' ? 'Try adjusting your filters' : 'Get started by adding your first job application'}
-                        </p>
-                        {!query && filter === 'ALL' && (
-                            <button
-                                onClick={openCreateModal}
-                                className="mt-4 text-indigo-600 font-medium hover:text-indigo-700"
-                            >
-                                Create new application
-                            </button>
-                        )}
-                    </div>
-                )}
-            </AnimatePresence>
-
-            <JobModal
+            <AddJobModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                onSubmit={editingJob ? handleUpdate : handleCreate}
-                initialData={editingJob}
+                onJobAdded={handleJobAdded}
             />
 
-            <DeleteModal
-                isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
-                onConfirm={handleDelete}
-                jobTitle={jobs.find(j => j.id === deleteId)?.company_name}
-                isLoading={deleteLoading}
-            />
+            {/* Bento Grid Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="glass-panel p-6 flex flex-col items-center justify-center space-y-2 bg-gradient-to-br from-blue-500/20 to-transparent border-blue-500/30"
+                >
+                    <span className="text-4xl font-bold">{stats.total}</span>
+                    <span className="text-sm text-white/70 uppercase tracking-wider">Total Applications</span>
+                </motion.div>
+
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="glass-panel p-6 flex flex-col items-center justify-center space-y-2 bg-gradient-to-br from-purple-500/20 to-transparent border-purple-500/30"
+                >
+                    <span className="text-4xl font-bold">{stats.interview}</span>
+                    <span className="text-sm text-white/70 uppercase tracking-wider">Interviews</span>
+                </motion.div>
+
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="glass-panel p-6 flex flex-col items-center justify-center space-y-2 bg-gradient-to-br from-green-500/20 to-transparent border-green-500/30"
+                >
+                    <span className="text-4xl font-bold text-green-300">{stats.offer}</span>
+                    <span className="text-sm text-white/70 uppercase tracking-wider">Offers</span>
+                </motion.div>
+            </div>
+
+            {/* Job Grid */}
+            <div>
+                <h3 className="text-xl font-semibold mb-6 flex items-center">
+                    Recent Applications
+                    <span className="ml-3 text-xs bg-white/10 px-2 py-1 rounded-full text-white/50">{applications.length}</span>
+                </h3>
+
+                {loading ? (
+                    <div className="text-center py-20 text-white/50">Loading application data...</div>
+                ) : applications.length === 0 ? (
+                    <div className="text-center py-20 bg-white/5 rounded-xl border border-dashed border-white/20">
+                        <p className="text-white/60">No applications yet. Start tracking!</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {applications.map((app) => (
+                            <JobCard key={app.id} application={app} />
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
-}
+};
+
+export default Dashboard;
