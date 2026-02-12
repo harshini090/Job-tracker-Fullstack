@@ -2,8 +2,10 @@ from rest_framework import serializers
 from users.models import User
 from applications.models import Application
 
+
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    """Serializer for user registration."""
+    password = serializers.CharField(write_only=True, min_length=6)
 
     class Meta:
         model = User
@@ -12,7 +14,10 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
 
+
 class ApplicationSerializer(serializers.ModelSerializer):
+    """Serializer for job applications."""
+
     class Meta:
         model = Application
         fields = '__all__'

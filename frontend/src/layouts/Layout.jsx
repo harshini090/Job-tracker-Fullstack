@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, PlusCircle, LogOut } from 'lucide-react';
+import { LayoutDashboard, LogOut, Briefcase } from 'lucide-react';
 
 const Layout = ({ children }) => {
     const { logout } = useAuth();
@@ -12,48 +12,58 @@ const Layout = ({ children }) => {
     ];
 
     return (
-        <div className="min-h-screen flex bg-transparent">
+        <div className="min-h-screen flex bg-[#020617]">
             {/* Sidebar */}
             <motion.aside
-                initial={{ x: -100, opacity: 0 }}
+                initial={{ x: -80, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                className="w-64 glass-panel m-4 flex flex-col p-6 fixed h-[calc(100vh-2rem)]"
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                className="w-[260px] glass-panel m-4 flex flex-col p-6 fixed h-[calc(100vh-2rem)] z-40"
             >
-                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70 mb-10">
-                    JobTracker
-                </h1>
+                {/* Brand */}
+                <div className="flex items-center space-x-3 mb-12 px-2">
+                    <div className="w-9 h-9 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                        <Briefcase size={18} className="text-indigo-400" />
+                    </div>
+                    <span className="text-lg font-bold text-slate-100 tracking-tight">JobFlow</span>
+                </div>
 
-                <nav className="flex-1 space-y-4">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${location.pathname === item.path
-                                    ? 'bg-white/20 shadow-lg'
-                                    : 'hover:bg-white/10'
-                                }`}
-                        >
-                            <item.icon size={20} />
-                            <span>{item.label}</span>
-                        </Link>
-                    ))}
+                {/* Nav */}
+                <nav className="flex-1 space-y-1">
+                    {navItems.map((item) => {
+                        const isActive = location.pathname === item.path;
+                        return (
+                            <Link
+                                key={item.path}
+                                to={item.path}
+                                className={`flex items-center space-x-3 px-4 py-2.5 rounded-xl transition-all duration-200 group ${isActive
+                                        ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                                        : 'hover:bg-white/[0.04] text-slate-400 hover:text-slate-200 border border-transparent'
+                                    }`}
+                            >
+                                <item.icon size={18} className={isActive ? 'text-indigo-400' : 'group-hover:text-slate-200 transition-colors'} />
+                                <span className="font-medium text-sm">{item.label}</span>
+                            </Link>
+                        );
+                    })}
                 </nav>
 
+                {/* Logout */}
                 <button
                     onClick={logout}
-                    className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/10 text-white/70 hover:text-white transition-all mt-auto"
+                    className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-red-500/5 text-slate-500 hover:text-red-400 transition-all duration-200 mt-auto group cursor-pointer border border-transparent hover:border-red-500/10"
                 >
-                    <LogOut size={20} />
-                    <span>Logout</span>
+                    <LogOut size={18} className="group-hover:text-red-400 transition-colors" />
+                    <span className="font-medium text-sm">Logout</span>
                 </button>
             </motion.aside>
 
             {/* Main Content */}
-            <main className="flex-1 ml-72 p-8">
+            <main className="flex-1 ml-[292px] p-8 min-h-screen">
                 <motion.div
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.1 }}
+                    transition={{ delay: 0.2, duration: 0.5 }}
                 >
                     {children}
                 </motion.div>

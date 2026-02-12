@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogIn } from 'lucide-react';
+import { LogIn, Mail, Lock, ArrowRight } from 'lucide-react';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -10,68 +10,116 @@ const Login = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
+        setLoading(true);
         try {
             await login(email, password);
             navigate('/');
         } catch (err) {
-            setError('Invalid credentials');
+            setError('Invalid email or password. Please try again.');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-            {/* Background Blobs */}
-            <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-500/30 rounded-full blur-3xl" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-500/30 rounded-full blur-3xl" />
+        <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4">
+            {/* Subtle animated background blobs */}
+            <div className="absolute top-[-10%] left-[20%] w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[100px] animate-pulse opacity-50" />
+            <div className="absolute bottom-[-10%] right-[20%] w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[100px] animate-pulse opacity-50" style={{ animationDelay: '1s' }} />
 
             <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="glass-panel p-8 w-full max-w-md relative z-10"
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                className="glass-panel p-8 md:p-10 w-full max-w-[420px] relative z-10 glow-indigo border-t border-white/[0.08]"
             >
+                {/* Header */}
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
-                    <p className="text-white/60">Enter your details to access your dashboard</p>
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 0.1, duration: 0.4 }}
+                        className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-500/10 mb-5 border border-indigo-500/20"
+                    >
+                        <LogIn size={24} className="text-indigo-400" />
+                    </motion.div>
+                    <h1 className="text-2xl font-bold text-white mb-2">Welcome Back</h1>
+                    <p className="text-slate-400 text-sm">Sign in to continue tracking your applications</p>
                 </div>
 
-                {error && <div className="bg-red-500/20 text-red-200 p-3 rounded-lg mb-4 text-sm text-center border border-red-500/30">{error}</div>}
+                {error && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-red-500/10 text-red-300 p-3 rounded-lg mb-6 text-sm text-center border border-red-500/10"
+                    >
+                        {error}
+                    </motion.div>
+                )}
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-medium mb-2 text-white/80">Email</label>
-                        <input
-                            type="email"
-                            className="glass-input w-full"
-                            placeholder="you@example.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-2 text-white/80">Password</label>
-                        <input
-                            type="password"
-                            className="glass-input w-full"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide ml-1">Email</label>
+                        <div className="relative group">
+                            <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                            <input
+                                type="email"
+                                className="glass-input w-full !pl-11 text-sm bg-black/20"
+                                placeholder="you@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
+                        </div>
                     </div>
 
-                    <button type="submit" className="glass-button w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 border-none shadow-lg shadow-blue-500/20">
-                        <LogIn size={20} />
-                        <span>Sign In</span>
+                    <div className="space-y-1.5">
+                        <div className="flex justify-between items-center ml-1">
+                            <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide">Password</label>
+                        </div>
+                        <div className="relative group">
+                            <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                            <input
+                                type="password"
+                                className="glass-input w-full !pl-11 text-sm bg-black/20"
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full flex items-center justify-center space-x-2 py-3 rounded-xl font-medium text-white text-sm
+                                   bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700
+                                   shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)]
+                                   border border-indigo-500/50
+                                   transition-all duration-300 disabled:opacity-50 cursor-pointer mt-2"
+                    >
+                        {loading ? (
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            <>
+                                <span>Sign In</span>
+                                <ArrowRight size={16} />
+                            </>
+                        )}
                     </button>
                 </form>
 
-                <div className="mt-6 text-center text-sm">
-                    <span className="text-white/60">Don't have an account? </span>
-                    <Link to="/register" className="text-white font-medium hover:underline">Register</Link>
+                <div className="mt-8 text-center text-sm">
+                    <span className="text-slate-500">Don't have an account? </span>
+                    <Link to="/register" className="text-indigo-400 font-medium hover:text-indigo-300 transition-colors">
+                        Create one
+                    </Link>
                 </div>
             </motion.div>
         </div>

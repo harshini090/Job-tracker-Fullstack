@@ -7,7 +7,18 @@ import Layout from './layouts/Layout';
 
 const ProtectedRoute = ({ children }) => {
   const { auth, loading } = useAuth();
-  if (loading) return <div className="text-white text-center mt-20">Loading...</div>;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-10 h-10 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+          <span className="text-slate-400 text-sm">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
   return auth ? children : <Navigate to="/login" />;
 };
 

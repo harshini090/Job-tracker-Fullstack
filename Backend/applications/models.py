@@ -1,7 +1,10 @@
 from django.db import models
 from django.conf import settings
 
+
 class Application(models.Model):
+    """Job application tracking model."""
+
     class Status(models.TextChoices):
         APPLIED = 'APPLIED', 'Applied'
         SCREENING = 'SCREENING', 'Screening'
@@ -9,11 +12,19 @@ class Application(models.Model):
         OFFER = 'OFFER', 'Offer'
         REJECTED = 'REJECTED', 'Rejected'
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='applications')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='applications'
+    )
     company_name = models.CharField(max_length=255)
     role_title = models.CharField(max_length=255)
     job_link = models.URLField(blank=True, null=True)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.APPLIED)
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.APPLIED
+    )
     date_applied = models.DateField()
     notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

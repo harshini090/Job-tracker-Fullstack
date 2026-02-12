@@ -8,16 +8,11 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const checkAuth = async () => {
-            const token = localStorage.getItem('access_token');
-            if (token) {
-                // Ideally verify token here, for now assume logged in if token exists
-                // We can fetch user profile if endpoint exists
-                setAuth({ token });
-            }
-            setLoading(false);
-        };
-        checkAuth();
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            setAuth({ token });
+        }
+        setLoading(false);
     }, []);
 
     const login = async (email, password) => {
@@ -29,6 +24,11 @@ export const AuthProvider = ({ children }) => {
         return response.data;
     };
 
+    const register = async (email, password) => {
+        const response = await api.post('/auth/register/', { email, password });
+        return response.data;
+    };
+
     const logout = () => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ auth, setAuth, login, logout, loading }}>
+        <AuthContext.Provider value={{ auth, setAuth, login, register, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );
