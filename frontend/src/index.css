@@ -1,24 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  --color-glass: rgba(255, 255, 255, 0.25);
-  --color-glassBorder: rgba(255, 255, 255, 0.5);
+  --color-glass: rgba(255, 255, 255, 0.05);
+  /* Lower opacity for premium feel */
+  --color-glassBorder: rgba(255, 255, 255, 0.1);
 }
 
 @layer utilities {
   .glass-panel {
-    @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl rounded-xl;
+    @apply bg-[#0f172a]/60 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl ring-1 ring-white/5;
   }
 
   .glass-input {
-    @apply bg-black/20 border border-white/10 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-white/30 text-white placeholder-white/50 transition-all;
+    @apply bg-[#1e293b]/50 border border-white/5 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-slate-200 placeholder-slate-500 transition-all;
   }
 
   .glass-button {
-    @apply bg-white/20 hover:bg-white/30 active:bg-white/40 border border-white/20 rounded-lg px-6 py-2 font-medium transition-all backdrop-blur-sm;
+    @apply bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/5 rounded-lg px-6 py-2 font-medium transition-all backdrop-blur-sm text-slate-200;
   }
 }
 
 body {
-  @apply bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen text-white font-sans antialiased;
+  /* Premium Dark Theme: Slate 950 to Slate 900 */
+  @apply bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 min-h-screen text-slate-200 font-sans antialiased;
 }
