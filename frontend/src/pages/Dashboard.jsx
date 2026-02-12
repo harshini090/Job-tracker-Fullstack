@@ -4,12 +4,17 @@ import { Plus } from 'lucide-react';
 import api from '../api/axios';
 import JobCard from '../components/JobCard';
 import JobModal from '../components/JobModal';
+import DeleteModal from '../components/DeleteModal';
 
 const Dashboard = () => {
     const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingJob, setEditingJob] = useState(null);
+
+    // Delete State
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [jobToDelete, setJobToDelete] = useState(null);
 
     useEffect(() => {
         fetchApplications();
@@ -33,6 +38,23 @@ const Dashboard = () => {
     const handleEdit = (job) => {
         setEditingJob(job);
         setIsModalOpen(true);
+    };
+
+    const handleDeleteClick = (job) => {
+        setJobToDelete(job);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!jobToDelete) return;
+        try {
+            await api.delete(`/applications/${jobToDelete.id}/`);
+            fetchApplications();
+            setIsDeleteModalOpen(false);
+            setJobToDelete(null);
+        } catch (error) {
+            console.error("Failed to delete", error);
+        }
     };
 
     const handleCloseModal = () => {
@@ -67,6 +89,13 @@ const Dashboard = () => {
                 onClose={handleCloseModal}
                 onJobSaved={handleJobSaved}
                 initialData={editingJob}
+            />
+
+            <DeleteModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                jobTitle={jobToDelete?.role_title}
             />
 
             {/* Bento Grid Stats */}
@@ -121,7 +150,7 @@ const Dashboard = () => {
                                 key={app.id}
                                 application={app}
                                 onUpdate={fetchApplications}
-                                onDelete={fetchApplications}
+                                onDelete={handleDeleteClick}
                                 onEdit={handleEdit}
                             />
                         ))}

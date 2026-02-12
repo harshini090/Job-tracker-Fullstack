@@ -37,15 +37,8 @@ const JobCard = ({ application, onUpdate, onDelete, onEdit }) => {
         }
     };
 
-    const handleDelete = async () => {
-        if (window.confirm(`Are you sure you want to delete your application for ${application.company_name}?`)) {
-            try {
-                await api.delete(`/applications/${application.id}/`);
-                onDelete();
-            } catch (error) {
-                console.error("Failed to delete", error);
-            }
-        }
+    const handleDelete = () => {
+        onDelete(application);
     };
 
     return (
